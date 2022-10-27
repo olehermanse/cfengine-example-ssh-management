@@ -34,6 +34,7 @@ bundle agent authorized_keys(filename)
   vars:
     # The universal_keys.txt file has a list of SSH keys we want to have 
     # access everywhere
+    # Todo: Put your own key in this file instead of mine.
     "universal_keys_file"
       string => "$(this.promise_dirname)/universal_keys.txt";
     "universal_keys"
@@ -47,7 +48,11 @@ bundle agent authorized_keys(filename)
     # On top of the universal keys, we'll add some more SSH keys,
     # but only to specific authorized_keys files.
     "specific_key_files"
-      data => '{"/root/.ssh/authorized_keys": "nicks_keys.txt"}';
+      data => '{
+        "/root/.ssh/authorized_keys": "nicks_keys.txt"
+      }';
+    # Todo: Put user keys into different files like 
+    #       nicks_keys.txt, update this section accordingly.
 
     # To process the specific_key_files data structure:
     # 1. Iterate over all the entries
@@ -75,6 +80,9 @@ bundle agent authorized_keys(filename)
       slist => unique(keys);
 
   files:
+    # Todo: Remove the .test extension when you are ready
+    #       to start enforcing the access and potentially
+    #       locking yourself out.
     "$(filename).test"
       content => concat(join("$(const.n)", sort(keys)), "$(const.n)");
 
