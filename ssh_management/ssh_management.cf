@@ -1,0 +1,85 @@
+# This file manages authorized_keys files to grant and revoke SSH access.
+# It is meant as an example to learn from, you will need to edit and expand
+# on it before you start using it.
+
+# Warning: This policy is for granting and revoking SSH access
+#          if you are not careful, you might lock yourself out.
+#          Read the README.md file before you start editing and running
+#          this policy.
+
+bundle agent ssh_management
+# This bundle is the entry point and is just for finding / listing out
+# all the authorized_keys files you want to manage. All the logic
+# of actually editing the file is in the next bundle, called authorized_keys.
+{
+    # Find the files we want to manage / overwrite:
+    vars:
+      "authorized_keys_files"
+        slist => {
+          "/root/.ssh/authorized_keys",
+          findfiles("/home/**/.ssh/authorized_keys"),
+        };
+
+    # Use the authorized_keys bundle once per file:
+    methods:
+      "Manage SSH authorized_keys files"
+        usebundle => authorized_keys("$(authorized_keys_files)"),
+        if => fileexists("$(authorized_keys_files)");
+}
+
+bundle agent authorized_keys(filename)
+# This bundle manages a specific authorized_keys file, specified
+# by the filename argument. Assumes the file exists (already checked).
+{
+  vars:
+    # The universal_keys.txt file has a list of SSH keys we want to have 
+    # access everywhere
+    "universal_keys_file"
+      string => "$(this.promise_dirname)/universal_keys.txt";
+    "universal_keys"
+      slist => readstringlist(
+        "$(universal_keys_file)", # File to read
+        "^\s*#[^\n]*",            # Exclude hash comment lines
+        "$(const.n)",             # Split on newlines
+        inf,                      # Maximum number of entries
+        inf);                     # Maximum number of bytes to
+
+    # On top of the universal keys, we'll add some more SSH keys,
+    # but only to specific authorized_keys files.
+    "specific_key_files"
+      data => '{"/root/.ssh/authorized_keys": "nicks_keys.txt"}';
+
+    # To process the specific_key_files data structure:
+    # 1. Iterate over all the entries
+    # 2. Skip any entries where our filename doesn't match
+    # 3. Read the actual SSH keys from the specified file(s)
+
+    # Iterate over the data container above:
+    "iterator"
+      slist => getindices(specific_key_files);
+    "collection[$(iterator)]"
+      slist => readstringlist(
+        "$(this.promise_dirname)/$(specific_key_files[$(iterator)])",
+        "^\s*#[^\n]*",
+        "$(const.n)",
+        inf,
+        inf),
+      if => strcmp("$(filename)", "$(iterator)");
+    "specific_keys"
+      slist => { getvalues(collection) };
+
+    # All SSH keys from both the universal and specific files:
+    "keys"
+      slist => {@(universal_keys), @(specific_keys)};
+    "unique_keys"
+      slist => unique(keys);
+
+  files:
+    "$(filename).test"
+      content => concat(join("$(const.n)", sort(keys)), "$(const.n)");
+
+  reports:
+    DEBUG|DEBUG_SSH_MANAGEMENT::
+      "Key: $(unique_keys)";
+      "File: $(filename)";
+}
