@@ -1,0 +1,7 @@
+{
+  "name": "SSH management example",
+  "type": "policy-set",
+  "description": "Just a small project to show off how you can get started managing SSH keys with CFEngine",
+  "build": [],
+  "git": true
+}
