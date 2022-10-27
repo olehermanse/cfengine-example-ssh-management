@@ -2,18 +2,6 @@
   "name": "SSH management example",
   "type": "policy-set",
   "description": "Just a small project to show off how you can get started managing SSH keys with CFEngine",
-  "build": [
-    {
-      "name": "masterfiles",
-      "description": "Official CFEngine Masterfiles Policy Framework (MPF)",
-      "tags": ["supported", "base"],
-      "repo": "https://github.com/cfengine/masterfiles",
-      "by": "https://github.com/cfengine",
-      "version": "3.18.2",
-      "commit": "a87b7fea6f7a88808b327730a4ba784a3dc664eb",
-      "added_by": "cfbs add",
-      "steps": ["run ./prepare.sh -y", "copy ./ ./"]
-    }
-  ],
+  "build": [],
   "git": true
 }
