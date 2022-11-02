@@ -10,6 +10,17 @@
       "commit": "a72a5d93e198a0e1aabdf67a255286fd9874388f",
       "steps": ["run ./prepare.sh -y", "copy ./ ./"],
       "added_by": "cfbs add"
+    },
+    {
+      "name": "./ssh_management/",
+      "description": "Local subdirectory added using cfbs command line",
+      "tags": ["local"],
+      "added_by": "cfbs add",
+      "steps": [
+        "directory ./ services/cfbs/ssh_management/",
+        "policy_files services/cfbs/ssh_management/",
+        "bundles ssh_management"
+      ]
     }
   ],
   "git": true
